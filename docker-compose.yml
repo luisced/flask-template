@@ -1,0 +1,42 @@
+version: '3.8'
+networks:
+  app-tier:
+    driver: bridge
+services:
+  db:
+    image: mysql:5.7
+    container_name: generic_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_PASSWORD: admin
+      MYSQL_DATABASE: generic_db
+      MYSQL_USER: admin
+    command: --default-authentication-plugin=mysql_native_password --bind-address=0.0.0.0 --explicit_defaults_for_timestamp
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+    ports:
+      - 3306:3306
+    networks:
+      - app-tier
+  adminer:
+    image: adminer
+    container_name: db_adminer
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      - app-tier
+  api:
+    container_name: generic_api
+    stdin_open: true
+    tty: true
+    restart: always
+    build: .
+    ports:
+      - 5555:5555
+    volumes:
+      - ./App:/genericApp/App
+    networks:
+      - app-tier
+ 
