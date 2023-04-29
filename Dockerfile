@@ -1,5 +1,5 @@
 # 1. Install python image
-FROM python:3.11.3-slim-bullseye
+FROM python:3.10.7-buster
 # 2. Set the working directory
 WORKDIR /genericApp
 # 3. Copy the dependencies file to the working directory
