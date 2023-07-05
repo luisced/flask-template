@@ -12,3 +12,4 @@ Flask-Session
 flask_bcrypt
 psutil
 flask-restful
+python-dotenv

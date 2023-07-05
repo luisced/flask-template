@@ -8,11 +8,7 @@ WORKDIR /api-getway
 RUN apt-get update && apt-get install -y --no-install-recommends python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
-# Set up virtual environment
-RUN python3 -m venv /venv
-ENV PATH="/venv/bin:$PATH"
-ENV FLASK_ENV development
-ENV DEBUG true
+
 
 # Install dependencies
 COPY requirements.txt .
@@ -25,8 +21,12 @@ COPY . .
 # Give execute permission to the SQL script
 RUN chmod +x sql/000_init_db.sql
 
+# Set environment variables
+ENV FLASK_DEBUG=development 
+ENV DEBUG=true
+
 # Expose port 5555
 EXPOSE 5555
 
 # Run the command to start your application
-CMD ["python3", "App/run.py"]
+CMD ["python", "App/run.py"]
