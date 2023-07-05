@@ -28,4 +28,8 @@ def create_app(config_class=Config):
 
     app.app_context().push()
 
+    from genericApp.genericmodule.routes import user
+
+    app.register_blueprint(user)
+
     return app
