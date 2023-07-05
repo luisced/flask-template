@@ -4,18 +4,12 @@ from datetime import datetime
 
 
 @dataclass
-class User(db.Model):
-    '''User model to interact with DB Table'''
+class BaseModel(db.Model):
+    '''Base Model to inherit from'''
 
-    __tablename__ = 'User'
+    __abstract__ = True
 
     id: int = db.Column(db.Integer, primary_key=True)
-    name: str = db.Column(db.String(280), nullable=False)
-    username: str = db.Column(db.String(280), nullable=False)
-    email: str = db.Column(db.String(280), nullable=False)
-    password: str = db.Column(db.String(280), nullable=False)
-    birth_date: datetime = db.Column(
-        db.Date, nullable=False)
     status: bool = db.Column(db.Boolean, nullable=False, default=True)
     creation_date: datetime = db.Column(
         db.Date, nullable=False, default=datetime.now)
@@ -30,3 +24,17 @@ class User(db.Model):
             else getattr(self, column.name)
             for column in self.__table__.columns
         }
+
+
+@dataclass
+class User(BaseModel):
+    '''User model to interact with DB Table'''
+
+    __tablename__ = 'User'
+
+    name: str = db.Column(db.String(280), nullable=False)
+    username: str = db.Column(db.String(280), nullable=False)
+    email: str = db.Column(db.String(280), nullable=False)
+    password: str = db.Column(db.String(280), nullable=False)
+    birth_date: datetime = db.Column(
+        db.Date, nullable=False)

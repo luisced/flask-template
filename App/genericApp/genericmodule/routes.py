@@ -1,134 +1,184 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify
 from genericApp.genericmodule.utils import *
+from flask_restful import reqparse
+
 
 user = Blueprint('user', __name__)
 
 
-@user.route('/create_user', methods=['POST'])
-def create_user_route():
+@user.route('/createUser', methods=['POST'])
+def create_user_endpoint() -> dict[str:str]:
     '''Create a user and return a User object type'''
 
-    json_data = request.get_json()
-    data: list[dict[str, str]] = []
-    response: dict[str, str] = {}
-    error, code = None, None
-    required_fields = ['name', 'username', 'email', 'password', 'birth_date']
-    if request.method == 'POST':
-        if not json_data:
-            error = 'No input data provided'
-            code = 400
-        elif not all(fields in json_data for fields in required_fields):
-            logging.info(json_data)
-            error = f'Missing key: {", ".join(fields for fields in required_fields if fields not in json_data)}'
-            logging.error("missing key")
-            code = 400
+    # Request parsing
+    parser = reqparse.RequestParser(bundle_errors=True)
+    parser.add_argument("name", type=str, location='json', required=True)
+    parser.add_argument("username", type=str, location='json', required=True)
+    parser.add_argument("email", type=str, location='json', required=True)
+    parser.add_argument("password", type=str, location='json', required=True)
+    parser.add_argument("birth_date", type=str, location='json', required=True)
+    args = parser.parse_args(strict=True)
+
+    try:
+        user = create_user(**args)
+        print(user)
+        if user:
+            data = user
+            message = 'User was successfully created'
+            status_code = 200
+            error = None
+            code = 1
         else:
-            user = create_user(**json_data)
-            if user:
-                logging.info("User Created")
-                data = user.to_dict()
-                message = 'User was succesfully created'
-                code = 200
+            message = 'Could not create user'
+            status_code = 400
+            error = 'User creation failed'
+            code = 2
 
-    else:
-        error = 'Method not allowed'
-        code = 405
+        return jsonify({
+            'success': True,
+            'message': message,
+            'User': data,
+            'status_code': status_code,
+            'error': error,
+            'code': code
+        }), status_code
 
-    response.update({'sucess': True, 'message': message, 'User': data, 'status_code': 200, 'error': error, 'code': code} if data and data != [] and data != [None] else {
-        'sucess': False,  'message': 'Could not get content', 'status_code': 400, 'error': f'{error}', 'code': code})
-    return jsonify(response)
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': 'Could not create user',
+            'status_code': 400,
+            'error': str(e),
+            'code': 2
+        }), 400
 
 
-@user.route('/get_user', methods=['GET'])
-def get_user_route():
-    json_data = request.get_json()
-    data: list[dict[str, str]] = []
-    response: dict[str, str] = {}
-    error, code = None, None
+@user.route('/getUser', methods=['GET'])
+def get_user() -> dict[str:str]:
+    '''Get user information'''
 
-    if request.method == 'GET':
-        if not json_data:
-            error = 'No input data provided'
-            code = 400
+    # Request parsing
+    parser = reqparse.RequestParser(bundle_errors=True)
+    parser.add_argument("id", type=int, location='args', required=True)
+    args = parser.parse_args(strict=True)
+
+    try:
+        user = get_user(args['id'])
+        if user:
+            data = user.to_dict()
+            message = f'User: {user.name}'
+            status_code = 200
+            error = None
+            code = 1
         else:
-            data = get_user(**json_data)
-            if data:
-                logging.info("Succesfully get user data")
-                message = f'user: {user.name}'
-                code = 200
-            else:
-                logging.info("User not found")
-                message = f'User not found'
-                code = 404
-    else:
-        error = 'Method not allowed'
-        code = 405
+            message = 'User not found'
+            status_code = 404
+            error = 'User not found'
+            code = 2
 
-    response.update({'sucess': True, 'message': message, 'User': data, 'status_code': 200, 'error': error, 'code': code} if data and data != [] and data != [None] else {
-        'sucess': False,  'message': 'Could not get content', 'status_code': 400, 'error': f'{error}', 'code': code})
-    return jsonify(response)
+        return jsonify({
+            'success': True,
+            'message': message,
+            'User': data,
+            'status_code': status_code,
+            'error': error,
+            'code': code
+        }), status_code
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': 'Could not get user',
+            'status_code': 400,
+            'error': str(e),
+            'code': 2
+        }), 400
 
 
-@user.route('/update_user', methods=['PUT'])
-def update_user_route():
-    json_data = request.get_json()
-    data: list[dict[str, str]] = []
-    response: dict[str, str] = {}
-    error, code = None, None
-    required_fields = ['id', 'name', 'username',
-                       'email', 'password', 'birth_date']
+@user.route('/updateUser', methods=['PUT'])
+def update_user() -> dict[str:str]:
+    '''Update user information'''
 
-    if request.method == 'PUT':
-        if not json_data:
-            error = 'No input data provided'
-            code = 400
-        elif not all(fields in json_data for fields in required_fields):
-            logging.info(json_data)
-            error = f'Missing key: {", ".join(fields for fields in required_fields if fields not in json_data)}'
-            logging.error("missing key")
-            code = 400
+    # Request parsing
+    parser = reqparse.RequestParser(bundle_errors=True)
+    parser.add_argument("id", type=int, location='json', required=True)
+    parser.add_argument("name", type=str, location='json', required=True)
+    parser.add_argument("username", type=str, location='json', required=True)
+    parser.add_argument("email", type=str, location='json', required=True)
+    parser.add_argument("password", type=str, location='json', required=True)
+    parser.add_argument("birth_date", type=str, location='json', required=True)
+    args = parser.parse_args(strict=True)
+
+    try:
+        user = update_user(**args)
+        if user:
+            data = get_user(user.id).to_dict()
+            message = 'User updated'
+            status_code = 200
+            error = None
+            code = 1
         else:
-            user = update_user(**json_data)
-            if user:
-                logging.info("User updated")
-                data = get_user(user.id)
-                message = 'User was succesfully created'
-                code = 200
-    else:
-        error = 'Method not allowed'
-        code = 405
+            message = 'Could not update user'
+            status_code = 400
+            error = 'User update failed'
+            code = 2
 
-    response.update({'sucess': True, 'message': message, 'User': data, 'status_code': 200, 'error': error, 'code': code} if data and data != [] and data != [None] else {
-        'sucess': False,  'message': 'Could not get content', 'status_code': 400, 'error': f'{error}', 'code': code})
-    return jsonify(response)
+        return jsonify({
+            'success': True,
+            'message': message,
+            'User': data,
+            'status_code': status_code,
+            'error': error,
+            'code': code
+        }), status_code
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': 'Could not update user',
+            'status_code': 400,
+            'error': str(e),
+            'code': 2
+        }), 400
 
 
-@user.route('/delete_user', methods=['DELETE'])
-def delete_user_route():
-    json_data = request.get_json()
-    data: list[dict[str, str]] = []
-    response: dict[str, str] = {}
-    error, code = None, None
+@user.route('/deleteUser', methods=['DELETE'])
+def delete_user() -> dict[str:str]:
+    '''Delete user'''
 
-    if request.method == 'DELETE':
-        if not json_data:
-            error = 'No input data provided'
-            code = 400
+    # Request parsing
+    parser = reqparse.RequestParser(bundle_errors=True)
+    parser.add_argument("id", type=int, location='json', required=True)
+    args = parser.parse_args(strict=True)
+
+    try:
+        user = delete_user(**args)
+        if user:
+            data = get_user(user.id).to_dict()
+            message = f'User: {user.name}'
+            status_code = 200
+            error = None
+            code = 1
         else:
-            user = delete_user(**json_data)
-            if user:
-                logging.info("User deleted")
-                data = get_user(user.id)
-                message = f'user: {user.name}'
-                code = 200
-            else:
-                logging.info("User not found")
-                message = f'User not found'
-                code = 404
-    else:
-        error = 'Method not allowed'
-        code = 405
+            message = 'User not found'
+            status_code = 404
+            error = 'User not found'
+            code = 2
 
-    response.update({'sucess': True, 'message': message, 'User': data, 'status_code': 200, 'error': error, 'code': code} if data and data != [] and data != [None] else {
-        'sucess': False,  'message': 'Could not get content', 'status_code': 400, 'error': f'{error}', 'code': code})
-    return jsonify(response)
+        return jsonify({
+            'success': True,
+            'message': message,
+            'User': data,
+            'status_code': status_code,
+            'error': error,
+            'code': code
+        }), status_code
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': 'Could not delete user',
+            'status_code': 400,
+            'error': str(e),
+            'code': 2
+        }), 400
