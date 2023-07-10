@@ -2,7 +2,6 @@ from flask import Blueprint, jsonify
 from genericApp.genericmodule.utils import *
 from flask_restful import reqparse
 
-
 user = Blueprint('user', __name__)
 
 
@@ -18,6 +17,7 @@ def create_user_endpoint() -> dict[str:str]:
     parser.add_argument("password", type=str, location='json', required=True)
     parser.add_argument("birth_date", type=str, location='json', required=True)
     args = parser.parse_args(strict=True)
+    data = None
 
     try:
         user = create_user(**args)
