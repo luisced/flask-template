@@ -96,9 +96,10 @@ def generate_response(success: bool, message: str, data: dict, status: int, erro
     response = {
         'success': success,
         'message': message,
-        'data': data,
         'status': status,
     }
     if error is not None:
         response['error'] = error
+    if data is not None:
+        response['data'] = data
     return response
